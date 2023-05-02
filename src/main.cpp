@@ -9,7 +9,7 @@
   #include "BLEEddystoneTLM.h"
   #include "BLEBeacon.h"
 ***********************/
-
+//#include <BLEDevice.h>
 #include <Arduino.h>
 
 #include <NimBLEDevice.h>
@@ -42,7 +42,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
       if (advertisedDevice->haveName())
       {
         temp = advertisedDevice->getName().c_str();   
-       
+       Serial.println(temp.c_str());
       }
 
       //found beacon
@@ -87,6 +87,7 @@ void setup()
 void loop()
 {
   Serial.println("=== start loop! ===");
+  
   // put your main code here, to run repeatedly:
       BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
      // Serial.println("Scan done!");
