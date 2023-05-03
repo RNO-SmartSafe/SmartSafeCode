@@ -53,10 +53,6 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
         Serial.println(temp.c_str());
 
         }
-       
-
-
-      
     
   }
 };
