@@ -20,7 +20,7 @@
 
 BLEScan *pBLEScan;
 int scanTime = 5; //In seconds
-int MAX_BEACON_DISTANCE = -40;//TODO::: search optimal number
+int MAX_BEACON_DISTANCE = -60;//TODO::: search optimal number
 std::vector<std::string> beacon_list;
 const int Pin = 25; // the number of the LED pin
 
@@ -49,9 +49,9 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
       if(temp == "Holy-IOT" && advertisedDevice->getRSSI() > MAX_BEACON_DISTANCE && !checkShakelConnection()){
         beacon_list.push_back(advertisedDevice->getAddress().toString());
         Serial.println(temp.c_str());
-         Serial.print("Device name: ");
+        Serial.print("Device name: ");
         Serial.println(temp.c_str());
-
+        
         }
     
   }
