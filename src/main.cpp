@@ -1,36 +1,33 @@
-/** NimBLE differences highlighted in comment blocks **/
-
-/*******original********
-  #include <BLEDevice.h>
-  #include <BLEUtils.h>
-  #include <BLEScan.h>
-  #include <BLEAdvertisedDevice.h>
-  #include "BLEEddystoneURL.h"
-  #include "BLEEddystoneTLM.h"
-  #include "BLEBeacon.h"
-***********************/
-//#include <BLEDevice.h>
-#include <Arduino.h>
-
+#include <chrono>
+#include <ctime>    
+#include "painlessMesh.h"
 #include <NimBLEDevice.h>
-#include <NimBLEAdvertisedDevice.h>
-#include "NimBLEBeacon.h"
+
+//for mesh init
+#define   MESH_PREFIX     "whateverYouLike"
+#define   MESH_PASSWORD   "somethingSneaky"
+#define   MESH_PORT       5555
 
 #define ENDIAN_CHANGE_U16(x) ((((x)&0xFF00) >> 8) + (((x)&0xFF) << 8))
 
+#define   scanTime               5  // In seconds
+#define   MAX_BEACON_DISTANCE   -60
+#define   Pin                    25 // the number of the LED pin
+
+Scheduler userScheduler; // to control your personal task
+painlessMesh  mesh;
 BLEScan *pBLEScan;
-int scanTime = 5; //In seconds
-int MAX_BEACON_DISTANCE = -60;//TODO::: search optimal number
-std::vector<std::string> beacon_list;
-const int Pin = 25; // the number of the LED pin
+
+auto start = std::chrono::system_clock::now();
+
+// User stub
+void sendMessage() ; // Prototype so PlatformIO doesn't complain
+Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
 
 bool checkShakelConnection(){
   Serial.println("inside check");
-  
   return digitalRead(Pin); // 1 connectd 0 not connectd
 }
-
-
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 {
@@ -42,59 +39,79 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
       if (advertisedDevice->haveName())
       {
         temp = advertisedDevice->getName().c_str();   
-       Serial.println(temp.c_str());
       }
-
-      //found beacon
+      //if found beacon && the distance is under 60 db && the chakel isent connected!
       if(temp == "Holy-IOT" && advertisedDevice->getRSSI() > MAX_BEACON_DISTANCE && !checkShakelConnection()){
-        beacon_list.push_back(advertisedDevice->getAddress().toString());
-        Serial.println(temp.c_str());
-        Serial.print("Device name: ");
-        Serial.println(temp.c_str());
-        
-        }
-    
+        Serial.println("find beacon!!! Mac address: ");
+        Serial.println(advertisedDevice->getAddress().toString().c_str());
+      }
   }
 };
 
-void setup()
-{
+
+
+//********** mesh functions *************
+void sendMessage() {
+  String msg = "Hi from node 1  ";
+  msg += mesh.getNodeId();
+  mesh.sendBroadcast( msg );
+  taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));
+}
+
+// Needed for painless library
+void receivedCallback( uint32_t from, String &msg ) {
+  Serial.printf("startHere: Received from %u msg=%s\n", from, msg.c_str());
+}
+
+void newConnectionCallback(uint32_t nodeId) {
+    Serial.printf("--> startHere: New Connection, nodeId = %u\n", nodeId);
+}
+
+void changedConnectionCallback() {
+  Serial.printf("Changed connections\n");
+}
+
+void nodeTimeAdjustedCallback(int32_t offset) {
+    Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(),offset);
+}
+
+void setup() {
   Serial.begin(115200);
   pinMode(Pin, INPUT);
-  std::vector<String> beacon_list;
 
-  //Serial.println("Scanning...");
+//mesh.setDebugMsgTypes( ERROR | MESH_STATUS | CONNECTION | SYNC | COMMUNICATION | GENERAL | MSG_TYPES | REMOTE ); // all types on
+  mesh.setDebugMsgTypes( ERROR | STARTUP );  // set before init() so that you can see startup messages
+  mesh.init( MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT );
+  mesh.onReceive(&receivedCallback);
+  mesh.onNewConnection(&newConnectionCallback);
+  mesh.onChangedConnections(&changedConnectionCallback);
+  mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
+
+  userScheduler.addTask( taskSendMessage );
+  taskSendMessage.enable();
 
   BLEDevice::init("");
   pBLEScan = BLEDevice::getScan(); //create new scan
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-  
-  
   pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
   pBLEScan->setInterval(100); //  
-
-  pBLEScan->setWindow(99); // less or equal setInterval value    
-  
-  Serial.println("End init");
-
-   
+  pBLEScan->setWindow(99); // less or equal setInterval value  
 }
 
-void loop()
-{
-  Serial.println("=== start loop! ===");
+void loop() {
+  // it will run the user scheduler as well
+  mesh.update();
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end - start;
   
-  // put your main code here, to run repeatedly:
-      BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
-     // Serial.println("Scan done!");
-
-      for (auto i = 0; i < beacon_list.size(); i++){ // get the MAC adrres of rhe Beacon
-        Serial.print("MAC adrres of Beacon: ");
-        Serial.println(beacon_list.at(i).c_str());
-      }
-
-      pBLEScan->clearResults(); // delete results fromBLEScan buffer to release memory
-      beacon_list.clear();
-      //delay(1000);
-      Serial.println("    Loop done!");
+  if(elapsed_seconds.count() >= 20.0){ 
+  
+    Serial.print("----- start beacon scan  ----- \n");
+    BLEScanResults foundDevices = pBLEScan->start(scanTime , false);
+    pBLEScan->clearResults(); // delete results fromBLEScan buffer to release memory
+    Serial.println(mesh.isRoot());
+    Serial.print("----- End beacon scan  ------ ");
+    start = std::chrono::system_clock::now();
+    
+  }
 }
