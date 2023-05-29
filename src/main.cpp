@@ -1,3 +1,5 @@
+//**** date version : 29/5 **** 
+
 #include <chrono>
 #include <ctime>    
 #include "painlessMesh.h"
@@ -19,6 +21,7 @@ painlessMesh  mesh;
 BLEScan *pBLEScan;
 
 auto start = std::chrono::system_clock::now();
+int nodeMassageNumber = 0;
 
 // User stub
 void sendMessage() ; // Prototype so PlatformIO doesn't complain
@@ -52,8 +55,10 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 
 //********** mesh functions *************
 void sendMessage() {
-  String msg = "Hi from node 1  ";
-  msg += mesh.getNodeId();
+  nodeMassageNumber++;
+  std::string m = std::to_string(nodeMassageNumber);
+  String msg = "Hi from node 3  -----  message number: ";
+  msg += m.c_str();
   mesh.sendBroadcast( msg );
   taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));
 }
@@ -112,6 +117,8 @@ void loop() {
     Serial.println(mesh.isRoot());
     Serial.print("----- End beacon scan  ------ ");
     start = std::chrono::system_clock::now();
+
+    
     
   }
 }
