@@ -13,7 +13,7 @@
 #define ENDIAN_CHANGE_U16(x) ((((x)&0xFF00) >> 8) + (((x)&0xFF) << 8))
 
 #define   scanTime               5  // In seconds
-#define   MAX_BEACON_DISTANCE   -60
+#define   MAX_BEACON_DISTANCE   -50
 #define   Pin                    25 // the number of the LED pin
 
 Scheduler userScheduler; // to control your personal task
@@ -23,6 +23,7 @@ String IOT_Beacon_Name;
 
 auto start = std::chrono::system_clock::now();
 int nodeMassageNumber = 0;
+std::string message_type = "Log";
 
 // User stub
 void sendMessage() ; // Prototype so PlatformIO doesn't complain
@@ -46,33 +47,34 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
       }
       //if found beacon && the distance is under 60 db && the chakel isent connected!
       if(temp == "Holy-IOT" && advertisedDevice->getRSSI() > MAX_BEACON_DISTANCE && !checkShakelConnection()){
+        Serial.println(advertisedDevice->getRSSI());
         Serial.println("In dangerous zone!!! Mac address: ");
+        message_type = "dangerous zone";
         IOT_Beacon_Name = advertisedDevice->getAddress().toString().c_str();
        
-
-       // Serial.println(IOT_Beacon_Name.c_str());
       }
   }
 };
 
-
-
 //********** mesh functions *************
 void sendMessage() {
-  nodeMassageNumber++;
+nodeMassageNumber++;
   std::string m = std::to_string(nodeMassageNumber);
-  //String msg = "Hi from node 2  -----  message number: ";
-  String msg = IOT_Beacon_Name.c_str();
-  msg += "||";
+  std::string msg = "message type: ";
+  msg += message_type.c_str();
+  msg += " IOT: ";
+  msg += IOT_Beacon_Name.c_str();
+  msg += " messege number:";
   msg += m.c_str();
-  
-  mesh.sendBroadcast( msg );
+  mesh.sendBroadcast( msg.c_str() );
   taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));
+  IOT_Beacon_Name="";
+  message_type = "Log";
 }
 
 // Needed for painless library
 void receivedCallback( uint32_t from, String &msg ) {
-  Serial.printf("startHere: Received from %u IOT=%s\n", from, msg.c_str());
+  Serial.printf(" %s from: %u\n" , msg.c_str(), from);
 }
 
 void newConnectionCallback(uint32_t nodeId) {
@@ -84,7 +86,7 @@ void changedConnectionCallback() {
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) {
-    Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(),offset);
+  Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(),offset);
 }
 
 void setup() {
@@ -117,21 +119,11 @@ void loop() {
   std::chrono::duration<double> elapsed_seconds = end - start;
   
   if(elapsed_seconds.count() >= 20.0){ 
-  
     Serial.print("----- start beacon scan  ----- \n");
     BLEScanResults foundDevices = pBLEScan->start(scanTime , false);
     pBLEScan->clearResults(); // delete results fromBLEScan buffer to release memory
     Serial.println(mesh.isRoot());
-    
     Serial.print("----- End beacon scan  ------ \n");
-    //Serial.println(IOT_Beacon_Name.c_str());
-    Serial.print("----- End beacon scan  ------ \n");
-
-
     start = std::chrono::system_clock::now();
-
-
-    
-    
   }
 }
