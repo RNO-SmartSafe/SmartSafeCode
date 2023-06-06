@@ -19,6 +19,7 @@
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
 BLEScan *pBLEScan;
+String IOT_Beacon_Name;
 
 auto start = std::chrono::system_clock::now();
 int nodeMassageNumber = 0;
@@ -45,8 +46,11 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
       }
       //if found beacon && the distance is under 60 db && the chakel isent connected!
       if(temp == "Holy-IOT" && advertisedDevice->getRSSI() > MAX_BEACON_DISTANCE && !checkShakelConnection()){
-        Serial.println("find beacon!!! Mac address: ");
-        Serial.println(advertisedDevice->getAddress().toString().c_str());
+        Serial.println("In dangerous zone!!! Mac address: ");
+        IOT_Beacon_Name = advertisedDevice->getAddress().toString().c_str();
+       
+
+       // Serial.println(IOT_Beacon_Name.c_str());
       }
   }
 };
@@ -57,15 +61,18 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 void sendMessage() {
   nodeMassageNumber++;
   std::string m = std::to_string(nodeMassageNumber);
-  String msg = "Hi from node 3  -----  message number: ";
+  //String msg = "Hi from node 2  -----  message number: ";
+  String msg = IOT_Beacon_Name.c_str();
+  msg += "||";
   msg += m.c_str();
+  
   mesh.sendBroadcast( msg );
   taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));
 }
 
 // Needed for painless library
 void receivedCallback( uint32_t from, String &msg ) {
-  Serial.printf("startHere: Received from %u msg=%s\n", from, msg.c_str());
+  Serial.printf("startHere: Received from %u IOT=%s\n", from, msg.c_str());
 }
 
 void newConnectionCallback(uint32_t nodeId) {
@@ -115,8 +122,14 @@ void loop() {
     BLEScanResults foundDevices = pBLEScan->start(scanTime , false);
     pBLEScan->clearResults(); // delete results fromBLEScan buffer to release memory
     Serial.println(mesh.isRoot());
-    Serial.print("----- End beacon scan  ------ ");
+    
+    Serial.print("----- End beacon scan  ------ \n");
+    //Serial.println(IOT_Beacon_Name.c_str());
+    Serial.print("----- End beacon scan  ------ \n");
+
+
     start = std::chrono::system_clock::now();
+
 
     
     
