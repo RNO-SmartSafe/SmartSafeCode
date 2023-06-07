@@ -19,7 +19,7 @@
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
 BLEScan *pBLEScan;
-String IOT_Beacon_Name;
+std::string IOT_Beacon_Name;
 
 auto start = std::chrono::system_clock::now();
 int nodeMassageNumber = 0;
@@ -31,7 +31,7 @@ Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
 
 bool checkShakelConnection(){
   Serial.println("inside check");
-  return digitalRead(Pin); // 1 connectd 0 not connectd
+  return digitalRead(Pin); // 1 connectd 0 disconnectd
 }
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
@@ -60,12 +60,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 void sendMessage() {
 nodeMassageNumber++;
   std::string m = std::to_string(nodeMassageNumber);
-  std::string msg = "message type: ";
-  msg += message_type.c_str();
-  msg += " IOT: ";
-  msg += IOT_Beacon_Name.c_str();
-  msg += " messege number:";
-  msg += m.c_str();
+  std::string msg = "{ \"message type\":\"" + message_type + "\", " + "\"IOT\":\"" + IOT_Beacon_Name + "\", " + "\"messege number\":\"" + m + "\", " + "\"from\":";
   mesh.sendBroadcast( msg.c_str() );
   taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));
   IOT_Beacon_Name="";
@@ -74,7 +69,7 @@ nodeMassageNumber++;
 
 // Needed for painless library
 void receivedCallback( uint32_t from, String &msg ) {
-  Serial.printf(" %s from: %u\n" , msg.c_str(), from);
+  Serial.printf("%s\"%u\"}\n" , msg.c_str(), from);
 }
 
 void newConnectionCallback(uint32_t nodeId) {
