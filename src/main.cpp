@@ -1,4 +1,7 @@
 //**** date version : 7/6 **** 
+////////////////////////////////////////////////////
+////// Authors: Natan Gorshomov, Ofir Magen ////////
+////////////////////////////////////////////////////
 
 #include <chrono>
 #include <ctime>    
@@ -6,15 +9,15 @@
 #include <NimBLEDevice.h>
 
 //for mesh init
-#define   MESH_PREFIX     "whateverYouLike"
-#define   MESH_PASSWORD   "somethingSneaky"
+#define   MESH_PREFIX     "SmartSafe"
+#define   MESH_PASSWORD   "RNO123456"
 #define   MESH_PORT       5555
 
 #define ENDIAN_CHANGE_U16(x) ((((x)&0xFF00) >> 8) + (((x)&0xFF) << 8))
 
 #define   scanTime               5  // In seconds
 #define   MAX_BEACON_DISTANCE   -50
-#define   Pin                    25 // the number of the LED pin
+#define   Pin                    25 // the number of the chakel pin
 
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
@@ -34,6 +37,7 @@ bool checkShakelConnection(){
   return digitalRead(Pin); // 1 connectd 0 disconnectd
 }
 
+// BLE class
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 {
     /*** Only a reference to the advertised device is passed now
@@ -58,7 +62,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 
 //********** mesh functions *************
 void sendMessage() {
-nodeMassageNumber++;
+  nodeMassageNumber++;
   std::string m = std::to_string(nodeMassageNumber);
   std::string msg = "{ \"message type\":\"" + message_type + "\", " + "\"IOT\":\"" + IOT_Beacon_Name + "\", " + "\"messege number\":\"" + m + "\", " + "\"from\":";
   mesh.sendBroadcast( msg.c_str() );
@@ -117,7 +121,6 @@ void loop() {
     Serial.print("----- start beacon scan  ----- \n");
     BLEScanResults foundDevices = pBLEScan->start(scanTime , false);
     pBLEScan->clearResults(); // delete results fromBLEScan buffer to release memory
-    Serial.println(mesh.isRoot());
     Serial.print("----- End beacon scan  ------ \n");
     start = std::chrono::system_clock::now();
   }
