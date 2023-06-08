@@ -1,5 +1,5 @@
 <div style="position: absolute; top: 0; right: 0;">
-  <img src="[images/logo.png](https://github.com/RNO-SmartSafe/SmartSafeApp/blob/master/Image/logo.jpg?raw=true)" alt="Logo" width="100" height="100">
+  <img src="(https://github.com/RNO-SmartSafe/SmartSafeApp/blob/master/Image/logo.jpg?raw=true)" alt="Logo" width="100" height="100">
 </div>
 
 # SmartSafe
