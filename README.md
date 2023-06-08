@@ -1,5 +1,3 @@
-<img align="right" width="100" height="100" src="[(https://github.com/RNO-SmartSafe/SmartSafeApp/blob/master/Image/logo.jpg?raw=true](https://github.com/RNO-SmartSafe/SmartSafeApp/blob/master/Image/logo.jpg?raw=true)">
-
 # SmartSafe
 
 SmartSafe is an end-to-end solution that
