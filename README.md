@@ -45,4 +45,6 @@ System architecture
 
 
 Mesh architecture
+
+
 ![](https://github.com/RNO-SmartSafe/SmartSafeApp/blob/master/Image/mesh%20architecture.jpg?raw=true)
