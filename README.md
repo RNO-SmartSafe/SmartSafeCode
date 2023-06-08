@@ -1,4 +1,4 @@
-<img align="left" width="100" height="100" src="[https://picsum.photos/100/100](https://github.com/RNO-SmartSafe/SmartSafeApp/blob/master/Image/logo.jpg)">
+<img align="right" width="100" height="100" src="[(https://github.com/RNO-SmartSafe/SmartSafeApp/blob/master/Image/logo.jpg?raw=true](https://github.com/RNO-SmartSafe/SmartSafeApp/blob/master/Image/logo.jpg?raw=true)">
 
 # SmartSafe
 
