@@ -1,6 +1,4 @@
-<div style="position: absolute; top: 0; right: 0;">
-  <img src="(https://github.com/RNO-SmartSafe/SmartSafeApp/blob/master/Image/logo.jpg?raw=true)" alt="Logo" width="100" height="100">
-</div>
+<img align="left" width="100" height="100" src="[https://picsum.photos/100/100](https://github.com/RNO-SmartSafe/SmartSafeApp/blob/master/Image/logo.jpg)">
 
 # SmartSafe
 
