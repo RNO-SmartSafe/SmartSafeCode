@@ -33,7 +33,7 @@ Bluetooth signals from a beacon device placed in a danger zone and when he is no
 - [ESP32](http://esp32.net)
 - [beacon](https://en.wikipedia.org/wiki/Bluetooth_Low_Energy_beacon)
 
-**programming languages:** c++ for esp32, flutter for App , python for Gateway
+**programming languages:** c & c++ for esp32, flutter for App , python for Gateway
 
 **frameworks:** VSCode and PlatformIO extensions for esp32* 
 
