@@ -1,4 +1,4 @@
-//**** date version : 7/6 **** 
+//**** date version : 25/6 **** 
 ////////////////////////////////////////////////////
 ////// Authors: Natan Gorshomov, Ofir Magen ////////
 ////////////////////////////////////////////////////
@@ -27,13 +27,17 @@ std::string IOT_Beacon_Name;
 auto start = std::chrono::system_clock::now();
 int nodeMassageNumber = 0;
 std::string message_type = "Log";
+bool toSend = false;
+std::vector<String> messageVector;
+
+uint32_t rootID = 3813217773;
 
 // User stub
 void sendMessage() ; // Prototype so PlatformIO doesn't complain
 Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
 
 bool checkShakelConnection(){
-  Serial.println("inside check");
+  Serial.println("inside checkShakelConnection");
   return digitalRead(Pin); // 1 connectd 0 disconnectd
 }
 
@@ -55,18 +59,34 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
         Serial.println("In dangerous zone!!! Mac address: ");
         message_type = "dangerous zone";
         IOT_Beacon_Name = advertisedDevice->getAddress().toString().c_str();
-       
       }
   }
 };
 
 //********** mesh functions *************
 void sendMessage() {
-  nodeMassageNumber++;
-  std::string m = std::to_string(nodeMassageNumber);
-  std::string msg = "{ \"message type\":\"" + message_type + "\", " + "\"IOT\":\"" + IOT_Beacon_Name + "\", " + "\"messege number\":\"" + m + "\", " + "\"from\":";
-  mesh.sendBroadcast( msg.c_str() );
-  taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));
+  
+  // mesh.sendBroadcast( msg.c_str() );
+  // taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));
+  std::__cxx11::list<uint32_t> nodeList = mesh.getNodeList();   
+  if(message_type == "dangerous zone"){
+    nodeMassageNumber++;
+    std::string m = std::to_string(nodeMassageNumber);
+    std::string msg = "{ \"message type\":\"" + message_type + "\", " + "\"IOT\":\"" + IOT_Beacon_Name + "\", " + "\"messege number\":\"" + m + "\", " + "\"from\":";
+    messageVector.push_back(msg.c_str());
+    if(messageVector.size() > 5){
+      messageVector.erase(messageVector.begin());
+    }
+  }
+  
+  for(uint32_t n : nodeList){
+    if(n == rootID){
+      while (!messageVector.empty()){
+        mesh.sendSingle(rootID, messageVector.back());
+        messageVector.pop_back();            
+      }
+    }
+  }
   IOT_Beacon_Name="";
   message_type = "Log";
 }
@@ -124,4 +144,6 @@ void loop() {
     Serial.print("----- End beacon scan  ------ \n");
     start = std::chrono::system_clock::now();
   }
+
 }
+
